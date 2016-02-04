@@ -44,11 +44,19 @@ namespace JeffWilcox.Controls
         {
             RequireCenter();
 
+#if WINDOWS_APP
+            var latitude = Center.Position.Latitude;
+            var longitude = Center.Position.Longitude;
+#else
+            var latitude = Center.Latitude;
+            var longitude = Center.Longitude;
+#endif
+
             var uri = new Uri(string.Format(
                 CultureInfo.InvariantCulture,
                 StaticMapsUrlFormat,
-                Center.Longitude,
-                Center.Latitude,
+                longitude,
+                latitude,
                 BingMapsHelper.ClampZoomLevel(ZoomLevel),
                 Width,
                 Height

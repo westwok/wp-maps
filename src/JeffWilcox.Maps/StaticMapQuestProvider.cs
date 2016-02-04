@@ -16,7 +16,12 @@
 
 using System;
 using System.Globalization;
+#if WINDOWS_APP
+using Windows.UI.Xaml;
+#else
 using System.Windows;
+#endif
+
 
 //
 // Important API Information:
@@ -49,6 +54,14 @@ namespace JeffWilcox.Controls
         {
             RequireCenter();
 
+#if WINDOWS_APP
+            var latitude = Center.Position.Latitude;
+            var longitude = Center.Position.Longitude;
+#else
+            var latitude = Center.Latitude;
+            var longitude = Center.Longitude;
+#endif
+
             var uri = new Uri(string.Format(
                 CultureInfo.InvariantCulture,
                 StaticMapsUrlFormat,
@@ -56,8 +69,8 @@ namespace JeffWilcox.Controls
                 Width,
                 Height,
                 BingMapsHelper.ClampZoomLevel(ZoomLevel),
-                Center.Latitude,
-                Center.Longitude,
+                latitude,
+                longitude,
                 TranslateMapMode(this.MapMode)
                 ), UriKind.Absolute);
 

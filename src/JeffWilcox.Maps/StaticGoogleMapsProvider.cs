@@ -49,6 +49,16 @@ namespace JeffWilcox.Controls
             "&sensor={5}" + // dev key
             "&maptype={6}"; // map type
 
+        private const string StaticMapsUrlFormatWithPath =
+            "http://maps.googleapis.com/maps/api/staticmap?" +
+            "size=" +
+            "{0}x{1}" + // width, height
+            "&sensor={2}" + // dev key
+            "&maptype={3}" + // map type
+            "&path=color:{4}" + //path color
+            "|weight:{5}" + //path weight
+            "|{6}"; //path
+
         public override Uri GetStaticMap()
         {
             // The free tier for static Google maps provides a max 640x640px.
@@ -59,17 +69,50 @@ namespace JeffWilcox.Controls
             // in to providing an appropriate API (or perhaps a premium GOOG
             // provider class) for that.
 
+#if WINDOWS_APP
+            var latitiude = Center.Position.Latitude;
+            var longitude = Center.Position.Longitude;
+#else
+            var latitiude = Center.Latitude;
+            var longitude = Center.Longitude;
+#endif
+
             var format = StaticMapsUrlFormat;
-            var uri = new Uri(string.Format(
-                CultureInfo.InvariantCulture,
-                format,
-                Center.Latitude,
-                Center.Longitude,
-                BingMapsHelper.ClampZoomLevel(ZoomLevel),
-                width,
-                height,
-                IsSensor ? "true" : "false",
-                TranslateMapMode(this.MapMode)), UriKind.Absolute);
+
+            string uriString;
+            if (string.IsNullOrEmpty(Path))
+            {
+
+                uriString = string.Format(
+                    CultureInfo.InvariantCulture,
+                    format,
+                    latitiude,
+                    longitude,
+                    BingMapsHelper.ClampZoomLevel(ZoomLevel),
+                    width,
+                    height,
+                    IsSensor ? "true" : "false",
+                    TranslateMapMode(this.MapMode));
+            }
+            else
+            {
+                
+                format = StaticMapsUrlFormatWithPath;
+
+                uriString = string.Format(
+                    CultureInfo.InvariantCulture,
+                    format,
+                    width,
+                    height,
+                    IsSensor ? "true" : "false",
+                    TranslateMapMode(this.MapMode),
+                    "red",
+                    "5",
+                    Path);
+            }
+
+            var uri = new Uri(uriString, UriKind.Absolute);
+
             return uri;
         }
 
@@ -88,6 +131,9 @@ namespace JeffWilcox.Controls
                 case StaticMapMode.Hybrid:
                     mapType = "hybrid";
                     break;
+                case StaticMapMode.Terrain:
+                    mapType = "terrain";
+                    break;
                 default:
                     mapType = "roadmap";
                     break;
@@ -100,11 +146,19 @@ namespace JeffWilcox.Controls
         {
             RequireCenter();
 
+#if WINDOWS_APP
+            var latitiude = Center.Position.Latitude;
+            var longitude = Center.Position.Longitude;
+#else
+            var latitiude = Center.Latitude;
+            var longitude = Center.Longitude;
+#endif
+
             return new Uri(string.Format(
                 CultureInfo.InvariantCulture,
                 "http://maps.google.com/?q={0},{1}",
-                Center.Latitude,
-                Center.Longitude),
+                latitiude,
+                longitude),
                 UriKind.Absolute);
         }
     }

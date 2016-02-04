@@ -14,7 +14,12 @@
 // limitations under the License.
 //
 
+#if WINDOWS_APP
+using Windows.UI.Xaml;
+#else
 using System.Windows;
+#endif
+
 
 namespace JeffWilcox.Controls
 {

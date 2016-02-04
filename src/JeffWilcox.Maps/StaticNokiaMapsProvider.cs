@@ -17,7 +17,11 @@
 
 using System;
 using System.Globalization;
+#if WINDOWS_APP
+using Windows.UI.Xaml;
+#else
 using System.Windows;
+#endif
 
 //
 // Important API Information:
@@ -48,12 +52,20 @@ namespace JeffWilcox.Controls
         {
             RequireCenter();
 
+#if WINDOWS_APP
+            var latitude = Center.Position.Latitude;
+            var longitude = Center.Position.Longitude;
+#else
+            var latitude = Center.Latitude;
+            var longitude = Center.Longitude;
+#endif
+
             var uri = new Uri(string.Format(
                 CultureInfo.InvariantCulture,
                 StaticMapsUrlFormat + "&nord",
                 TranslateMapMode(this.MapMode),
-                Center.Latitude,
-                Center.Longitude,
+                latitude,
+                longitude,
                 ZoomLevel,
                 Width,
                 Height,
@@ -108,12 +120,20 @@ namespace JeffWilcox.Controls
             // when "nord" parameter is missing
             RequireCenter();
 
+#if WINDOWS_APP
+            var latitude = Center.Position.Latitude;
+            var longitude = Center.Position.Longitude;
+#else
+            var latitude = Center.Latitude;
+            var longitude = Center.Longitude;
+#endif
+
             var uri = new Uri(string.Format(
                 CultureInfo.InvariantCulture,
                 StaticMapsUrlFormat + "&nord",
                 TranslateMapMode(this.MapMode),
-                Center.Latitude,
-                Center.Longitude,
+                latitude,
+                longitude,
                 ZoomLevel,
                 Width,
                 Height,

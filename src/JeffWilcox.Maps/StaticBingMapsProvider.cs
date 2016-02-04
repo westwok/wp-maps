@@ -16,7 +16,11 @@
 
 using System;
 using System.Globalization;
+#if WINDOWS_APP
+using Windows.UI.Xaml;
+#else
 using System.Windows;
+#endif
 
 // Make sure that you review the API terms and conditions for using the Bing
 // Maps Static Map API.
@@ -46,17 +50,26 @@ namespace JeffWilcox.Controls
             RequireCenter();
 
             var format = StaticMapsUrlFormat.Replace(PushPinFormat, string.Empty);
+
+#if WINDOWS_APP
+            var latitude = Center.Position.Latitude;
+            var longitude = Center.Position.Longitude;
+#else
+            var latitude = Center.Latitude;
+            var longitude = Center.Longitude;
+#endif
+
             var uri = new Uri(string.Format(
                 CultureInfo.InvariantCulture,
                 format,
                 TranslateMapMode(this.MapMode),
-                Center.Latitude,
-                Center.Longitude,
+                latitude,
+                longitude,
                 BingMapsHelper.ClampZoomLevel(ZoomLevel),
                 Width,
                 Height,
-                Center.Latitude,
-                Center.Longitude,
+                latitude,
+                longitude,
                 36, // http://msdn.microsoft.com/en-us/library/ff701719.aspx    (pin styles)
                 _key
                 ), UriKind.Absolute);
@@ -107,11 +120,19 @@ namespace JeffWilcox.Controls
         {
             RequireCenter();
 
+#if WINDOWS_APP
+            var latitude = Center.Position.Latitude;
+            var longitude = Center.Position.Longitude;
+#else
+            var latitude = Center.Latitude;
+            var longitude = Center.Longitude;
+#endif
+
             return new Uri(string.Format(
                 CultureInfo.InvariantCulture,
                 "http://maps.live.com/?v=2&cp={0},{1}&lvl={2}",
-                Center.Latitude,
-                Center.Longitude,
+                latitude,
+                longitude,
                 BingMapsHelper.ClampZoomLevel(ZoomLevel)),
                 UriKind.Absolute);
         }

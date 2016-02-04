@@ -17,7 +17,12 @@
 // Google Maps is a trademark of Google, Inc.
 // Bing Maps is a trademark of Microsoft Corporation
 
+#if WINDOWS_APP
+using System.ComponentModel.DataAnnotations;
+#else
 using System.ComponentModel;
+#endif
+
 namespace JeffWilcox.Controls
 {
     /// <summary>
@@ -28,28 +33,48 @@ namespace JeffWilcox.Controls
         /// <summary>
         /// Bing Maps.
         /// </summary>
+#if WINDOWS_APP
+        [Display(Description = "Bing Maps")]
+#else
         [Description("Bing Maps")]
+#endif
         Bing,
 
         /// <summary>
         /// Google Maps.
         /// </summary>
+#if WINDOWS_APP
+        [Display(Description = "Google Maps")]
+#else
         [Description("Google Maps")]
+#endif
         Google,
         
         /// <summary>
         /// MapQuest.
         /// </summary>
+#if WINDOWS_APP
+        [Display(Description = "MapQuest")]
+#else
         [Description("MapQuest")]
+#endif
         MapQuest,
         
         /// <summary>
         /// OpenStreetMap.
         /// </summary>
+#if WINDOWS_APP
+        [Display(Description = "OpenStreetMap")]
+#else
         [Description("OpenStreetMap")]
+#endif
         OpenStreetMap,
 
+#if WINDOWS_APP
+        [Display(Description = "Nokia Maps")]
+#else
         [Description("Nokia Maps")]
+#endif
         Nokia,
     }
 }

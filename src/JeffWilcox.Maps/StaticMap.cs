@@ -15,10 +15,21 @@
 //
 
 using System;
+
+#if WINDOWS_APP
+using System.Threading.Tasks;
+using Windows.Devices.Geolocation;
+using Windows.UI.Xaml;
+using Windows.UI.Xaml.Controls;
+using Windows.UI.Xaml.Media.Imaging;
+
+#else
 using System.Device.Location;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media.Imaging;
+#endif
+
 
 // TODO: Consider exposing IsSecure true/false to use HTTPS instead.
 // CONSIDER: Should the map provider key be a property, or is it OK in the hidden App.xaml resource method that I'm going with here?
@@ -42,11 +53,19 @@ namespace JeffWilcox.Controls
         /// <summary>
         /// Gets or sets the map center.
         /// </summary>
+#if WINDOWS_APP
+        public Geopoint MapCenter
+        {
+            get { return GetValue(MapCenterProperty) as Geopoint; }
+            set { SetValue(MapCenterProperty, value); }
+        }
+#else
         public GeoCoordinate MapCenter
         {
             get { return GetValue(MapCenterProperty) as GeoCoordinate; }
             set { SetValue(MapCenterProperty, value); }
         }
+#endif
 
         /// <summary>
         /// Identifies the MapCenter dependency property.
@@ -54,7 +73,11 @@ namespace JeffWilcox.Controls
         public static readonly DependencyProperty MapCenterProperty =
             DependencyProperty.Register(
                 "MapCenter",
+#if WINDOWS_APP
+                typeof(Geopoint),
+#else
                 typeof(GeoCoordinate),
+#endif
                 typeof(StaticMap),
                 new PropertyMetadata(null, OnMapCenterPropertyChanged));
 
@@ -68,9 +91,9 @@ namespace JeffWilcox.Controls
             StaticMap source = d as StaticMap;
             source.UpdateMap();
         }
-        #endregion public GeoCoordinate MapCenter
+#endregion public GeoCoordinate MapCenter
 
-        #region public int ZoomLevel
+#region public int ZoomLevel
         /// <summary>
         /// Gets or sets the zoom level, a value from 1 to 22, where 1 will
         /// show the entire world, and 22 will show at the street level
@@ -102,9 +125,9 @@ namespace JeffWilcox.Controls
             StaticMap source = d as StaticMap;
             source.UpdateMap();
         }
-        #endregion public int ZoomLevel
+#endregion public int ZoomLevel
 
-        #region public StaticMapProviderType Provider
+#region public StaticMapProviderType Provider
         /// <summary>
         /// Gets or sets the type of map provider to use for rendering static
         /// maps.
@@ -136,9 +159,9 @@ namespace JeffWilcox.Controls
             source.UpdateProvider();
             source.UpdateMap();
         }
-        #endregion public StaticMapProviderType Provider
+#endregion public StaticMapProviderType Provider
 
-        #region public StaticMapMode MapMode
+#region public StaticMapMode MapMode
         /// <summary>
         /// Gets or sets the visual map mode for the map image.
         /// </summary>
@@ -166,9 +189,9 @@ namespace JeffWilcox.Controls
             source.UpdateMap();
         }
 
-        #endregion public StaticMapMode MapMode
+#endregion public StaticMapMode MapMode
 
-        #region public Uri ActualImageSource
+#region public Uri ActualImageSource
         /// <summary>
         /// Sets the actual image source. Only exposes the getter to
         /// try and reduce errors by end user developers who may want to set
@@ -189,9 +212,9 @@ namespace JeffWilcox.Controls
                 typeof(Uri),
                 typeof(StaticMap),
                 new PropertyMetadata(null));
-        #endregion public Uri ActualImageSource
+#endregion public Uri ActualImageSource
 
-        #region public Visibility MapCenterVisibility
+#region public Visibility MapCenterVisibility
         /// <summary>
         /// Gets or sets a value indicating whether the center point on the 
         /// map is visible or not.
@@ -211,9 +234,9 @@ namespace JeffWilcox.Controls
                 typeof(Visibility),
                 typeof(StaticMap),
                 new PropertyMetadata(Visibility.Visible));
-        #endregion public Visibility MapCenterVisibility
+#endregion public Visibility MapCenterVisibility
 
-        #region public bool IsSensorCoordinate
+#region public bool IsSensorCoordinate
         /// <summary>
         /// Gets or sets a value indicating whether a sensor's coordinate is
         /// being used for the MapCenter point of the StaticMap. This may need
@@ -248,9 +271,9 @@ namespace JeffWilcox.Controls
                 source._mapProvider.IsSensor = (bool)e.NewValue;
             }
         }
-        #endregion public bool IsSensorCoordinate
+#endregion public bool IsSensorCoordinate
 
-        #region public StaticMapStatus Status
+#region public StaticMapStatus Status
 
         /// <summary>
         /// Gets the download status of the map.
@@ -276,6 +299,24 @@ namespace JeffWilcox.Controls
 
         #endregion
 
+#region public string Path
+        public string Path
+        {
+            get { return (string)GetValue(PathProperty); }
+            set { SetValue(PathProperty, value); }
+        }
+
+        // Using a DependencyProperty as the backing store for Path.  This enables animation, styling, binding, etc...
+        public static readonly DependencyProperty PathProperty =
+            DependencyProperty.Register("Path", typeof(string), typeof(StaticMap), new PropertyMetadata(null, OnPathPropertyChanged));
+
+        private static void OnPathPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            StaticMap source = d as StaticMap;
+            source.UpdateMap();
+        }
+#endregion public string Path
+
         public StaticMap()
         {
             DefaultStyleKey = typeof(StaticMap);
@@ -292,27 +333,39 @@ namespace JeffWilcox.Controls
             }
         }
 
+#if WINDOWS_APP
+        protected override void OnApplyTemplate()
+#else
         public override void OnApplyTemplate()
+#endif
         {
             base.OnApplyTemplate();
 
             _image = GetTemplateChild(ImagePartName) as Image;
-            _image.ImageFailed += new EventHandler<ExceptionRoutedEventArgs>(OnImageFailed);
-            _image.ImageOpened += new EventHandler<RoutedEventArgs>(OnImageOpened);
+
+            _image.ImageFailed += _image_ImageFailed;
+            _image.ImageOpened += _image_ImageOpened;
 
             UpdateMap();
         }
 
-        private void OnImageFailed(object source, ExceptionRoutedEventArgs e)
+
+
+        private void _image_ImageFailed(object sender, ExceptionRoutedEventArgs e)
         {
+#if WINDOWS_APP
+            UpdateStatus(StaticMapStatus.Failed, new Exception(e.ErrorMessage));
+#else
             UpdateStatus(StaticMapStatus.Failed, e.ErrorException);
+#endif
         }
 
-        private void OnImageOpened(object source, RoutedEventArgs e)
+        private void _image_ImageOpened(object sender, RoutedEventArgs e)
         {
             UpdateStatus(StaticMapStatus.Done);
         }
-        
+
+       
         private void UpdateProvider()
         {
             switch (Provider)
@@ -342,6 +395,29 @@ namespace JeffWilcox.Controls
             }
         }
 
+#if WINDOWS_APP
+
+        public async Task<bool> NavigateBrowserToMap()
+        {
+            if (_mapProvider != null)
+            {
+                return await _mapProvider.NavigateBrowserToMap();
+            }
+
+            return false;
+        }
+
+        public async Task<bool> NavigateToMapsApplication()
+        {
+            if (_mapProvider != null)
+            {
+                return await _mapProvider.NavigateToMapsApplication();
+            }
+
+            return false;
+        }
+#else
+
         public bool NavigateBrowserToMap()
         {
             if (_mapProvider != null)
@@ -362,6 +438,8 @@ namespace JeffWilcox.Controls
             return false;
         }
 
+#endif
+
         private void UpdateMap()
         {
             if (_mapProvider == null)
@@ -379,6 +457,7 @@ namespace JeffWilcox.Controls
                 _mapProvider.IsSensor = IsSensorCoordinate;
                 _mapProvider.Center = MapCenter;
                 _mapProvider.MapMode = MapMode;
+                _mapProvider.Path = Path;
                 _mapProvider.Validate();
 
                 ActualImageSource = _mapProvider.GetStaticMap();

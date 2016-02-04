@@ -15,7 +15,11 @@
 //
 
 using System;
+#if WINDOWS_APP
+using Windows.Devices.Geolocation;
+#else
 using System.Device.Location;
+#endif
 
 namespace JeffWilcox.Controls
 {
@@ -28,16 +32,29 @@ namespace JeffWilcox.Controls
         // assumes a spherical earth rather than an ellipsoid. For long 
         // distances, the Haversine formula introduces an error of less than 
         // 0.1 percent. Altitude is not used to calculate the distance.
+#if WINDOWS_APP
+        public static double GetDistanceTo(this Geopoint self, Geopoint other)
+        {
+            var selfLatitude = self.Position.Latitude;
+            var selfLongitude = self.Position.Longitude;
+            var otherLatitude = self.Position.Latitude;
+            var otherLongitude = self.Position.Longitude;
+#else
         public static double GetDistanceTo(this GeoCoordinate self, GeoCoordinate other)
         {
-            if ((double.IsNaN(self.Latitude) || double.IsNaN(self.Longitude)) || (double.IsNaN(other.Latitude) || double.IsNaN(other.Longitude)))
+            var selfLatitude = self.Latitude;
+            var selfLongitude = self.Longitude;
+            var otherLatitude = self.Latitude;
+            var otherLongitude = self.Longitude;
+#endif
+            if ((double.IsNaN(selfLatitude) || double.IsNaN(selfLongitude)) || (double.IsNaN(otherLatitude) || double.IsNaN(otherLongitude)))
             {
                 throw new ArgumentException("Latitude or Longitude is not a number.");
             }
-            double d = self.Latitude * 0.017453292519943295;
-            double num3 = self.Longitude * 0.017453292519943295;
-            double num4 = other.Latitude * 0.017453292519943295;
-            double num5 = other.Longitude * 0.017453292519943295;
+            double d = selfLatitude * 0.017453292519943295;
+            double num3 = selfLongitude * 0.017453292519943295;
+            double num4 = otherLatitude * 0.017453292519943295;
+            double num5 = otherLongitude * 0.017453292519943295;
             double num6 = num5 - num3;
             double num7 = num4 - d;
             double num8 = Math.Pow(Math.Sin(num7 / 2.0), 2.0) + ((Math.Cos(d) * Math.Cos(num4)) * Math.Pow(Math.Sin(num6 / 2.0), 2.0));

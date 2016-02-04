@@ -14,7 +14,14 @@
 // limitations under the License.
 //
 
+
+
+#if WINDOWS_APP
+using System.ComponentModel.DataAnnotations;
+#else
 using System.ComponentModel;
+#endif
+
 namespace JeffWilcox.Controls
 {
     /// <summary>
@@ -25,19 +32,41 @@ namespace JeffWilcox.Controls
         /// <summary>
         /// Map
         /// </summary>
+#if WINDOWS_APP
+        [Display(Description = "Map")]
+#else
         [Description("Map")]
+#endif
         Map,
 
         /// <summary>
         /// Satellite
         /// </summary>
+#if WINDOWS_APP
+        [Display(Description = "Satellite")]
+#else
         [Description("Satellite")]
+#endif
         Satellite,
 
         /// <summary>
         /// Hybrid (Satellite + Road)
         /// </summary>
+#if WINDOWS_APP
+        [Display(Description = "Hybrid")]
+#else
         [Description("Hybrid")]
+#endif
         Hybrid,
+
+        /// <summary>
+        /// terrain
+        /// </summary>
+#if WINDOWS_APP
+        [Display(Description = "Terrain")]
+#else
+        [Description("Terrain")]
+#endif
+        Terrain
     }
 }

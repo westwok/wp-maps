@@ -15,7 +15,12 @@
 //
 
 using System;
+#if WINDOWS_APP
+using Windows.Devices.Geolocation;
+#else
 using System.Device.Location;
+#endif
+
 
 namespace JeffWilcox.Controls
 {
@@ -59,10 +64,20 @@ namespace JeffWilcox.Controls
         /// pin size on display, maybe provide a value like 210 pixels.</param>
         /// <returns>Returns a zoom level for use with the Bing Maps control or
         /// Bing Maps static map REST API.</returns>
+#if WINDOWS_APP
+        public static double GetZoomLevelShowingPoints(Geopoint geo1, Geopoint geo2, double pixelsBetween)
+        {
+            var geo1Latitude = geo1.Position.Latitude;
+            var geo2Latitude = geo2.Position.Latitude;
+#else
         public static double GetZoomLevelShowingPoints(GeoCoordinate geo1, GeoCoordinate geo2, double pixelsBetween)
         {
+            var geo1Latitude = geo1.Latitude;
+            var geo2Latitude = geo2.Latitude;
+#endif
+
             var distanceBetween = geo1.GetDistanceTo(geo2);
-            var averageLatitude = (geo1.Latitude + geo2.Latitude) / 2;
+            var averageLatitude = (geo1Latitude + geo2Latitude) / 2;
 
             for (int i = 1; i < 20; i++)
             {
